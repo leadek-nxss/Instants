@@ -7,42 +7,41 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    /* Bloqueo global de selección de texto/imágenes */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #0f0f15;
+      background: #0b0b10;
       color: #fff;
       min-height: 100vh;
       overflow-x: hidden;
-      -webkit-touch-callout: none; /* Bloquea menú al mantener presionado en cel */
-      -webkit-user-select: none;   /* Bloquea selección */
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
       user-select: none;
     }
 
     header {
       text-align: center;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
+      padding: 15px;
+      background: rgba(20, 20, 30, 0.8);
+      backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 10000;
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
     .form-container {
-      max-width: 450px;
-      margin: 15px auto 0 auto;
+      max-width: 400px;
+      margin: 10px auto 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     input[type="file"], input[type="text"] {
       background: #1a1a24;
       border: 1px solid #33334d;
       color: #fff;
-      padding: 10px;
+      padding: 8px;
       border-radius: 8px;
     }
 
@@ -50,7 +49,7 @@
       background: #6c5ce7;
       color: white;
       border: none;
-      padding: 12px;
+      padding: 10px;
       border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
@@ -59,65 +58,83 @@
 
     button:hover { background: #5b4bc4; }
 
-    /* Estructura del Muro de Fotos Flotantes */
-    .muro {
+    /* Contenedor del Mural Tipo Collage */
+    .mural-container {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      min-height: 80vh;
+      margin: 20px auto;
+      padding: 20px;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 25px;
-      padding: 40px 20px;
-      max-width: 1300px;
-      margin: 0 auto;
+      align-items: flex-start;
     }
 
-    .card {
-      background: #181824;
-      border-radius: 12px;
-      padding: 12px;
-      width: 260px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.05);
-      animation: flotar 4s ease-in-out infinite alternate;
+    /* Estilo de la tarjeta polaroid/foto */
+    .foto-card {
       position: relative;
+      width: 200px;
+      background: #181824;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s ease, z-index 0.3s ease;
+      /* Margen negativo para lograr el efecto de encimado tipo solapado */
+      margin-left: -40px;
+      margin-top: -20px;
+      cursor: pointer;
     }
 
-    /* Enlace para abrir la foto */
-    .card a {
+    /* Al pasar el cursor o tocarla, se pone hasta arriba para poder verla bien */
+    .foto-card:hover, .foto-card:active {
+      z-index: 9999 !important;
+      transform: scale(1.15) rotate(0deg) !important;
+      box-shadow: 0 15px 35px rgba(108, 92, 231, 0.5);
+    }
+
+    .foto-card a {
       display: block;
       text-decoration: none;
-      outline: none;
     }
 
-    .card img {
+    .foto-card img {
       width: 100%;
-      height: 260px;
+      height: 200px;
       object-fit: cover;
-      border-radius: 8px;
-      background: #252538;
+      border-radius: 6px;
       display: block;
-      /* Bloqueos específicos para imágenes */
-      -webkit-user-drag: none; /* Evita arrastrar la imagen */
-      user-select: none;
+      -webkit-user-drag: none;
       pointer-events: auto;
     }
 
-    .card p {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #ddd;
+    .foto-card p {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #eee;
       word-wrap: break-word;
+      text-align: center;
     }
 
-    .card span {
+    .foto-card span {
       display: block;
-      margin-top: 6px;
-      font-size: 11px;
-      color: #777;
+      margin-top: 4px;
+      font-size: 10px;
+      color: #888;
+      text-align: center;
     }
 
-    @keyframes flotar {
-      0% { transform: translateY(0px) rotate(0deg); }
-      100% { transform: translateY(-12px) rotate(1.5deg); }
+    @media (max-width: 600px) {
+      .foto-card {
+        width: 150px;
+        margin-left: -25px;
+        margin-top: -15px;
+      }
+      .foto-card img {
+        height: 150px;
+      }
     }
   </style>
 </head>
@@ -126,35 +143,40 @@
 
   <header>
     <h1>Muro Anónimo</h1>
-    <p style="font-size: 13px; color: #aaa;">Sube tu imagen de forma anónima</p>
+    <p style="font-size: 12px; color: #aaa;">Toca una foto para ampliarla</p>
 
     <div class="form-container">
       <input type="file" id="fotoInput" accept="image/*">
       <input type="text" id="comentarioInput" placeholder="Mensaje corto (opcional)..." maxlength="100">
-      <button id="btnPublicar" onclick="subirPublicacion()">Publicar en el Muro</button>
+      <button id="btnPublicar" onclick="subirPublicacion()">Publicar en el Mural</button>
     </div>
   </header>
 
-  <main class="muro" id="muroContenedor"></main>
+  <main class="mural-container" id="muralContenedor"></main>
 
   <script>
-    window.addEventListener('DOMContentLoaded', cargarMuro);
+    window.addEventListener('DOMContentLoaded', cargarMural);
 
-    async function cargarMuro() {
+    async function cargarMural() {
       try {
         const res = await fetch('/api/fotos');
         const fotos = await res.json();
-        const contenedor = document.getElementById('muroContenedor');
+        const contenedor = document.getElementById('muralContenedor');
         contenedor.innerHTML = '';
 
         fotos.forEach((foto, i) => {
           const card = document.createElement('div');
-          card.className = 'card';
-          card.style.animationDelay = `${(i % 5) * 0.4}s`;
+          card.className = 'foto-card';
 
-          // Se envuelve la imagen en un <a> con target="_blank" para abrir la foto completa
+          // Asigna niveles de profundidad (z-index) y rotaciones aleatorias para estilo collage
+          const rotacionAleatoria = (Math.random() * 20 - 10).toFixed(1); // entre -10deg y 10deg
+          const zIndexCalculado = fotos.length - i; // Las nuevas quedan encima pero desfasadas
+
+          card.style.transform = `rotate(${rotacionAleatoria}deg)`;
+          card.style.zIndex = zIndexCalculado;
+
           card.innerHTML = `
-            <a href="${foto.url}" target="_blank" title="Ver foto completa">
+            <a href="${foto.url}" target="_blank">
               <img src="${foto.url}" loading="lazy" alt="Foto Anónima" oncontextmenu="return false;" ondragstart="return false;">
             </a>
             ${foto.comentario ? `<p>${foto.comentario}</p>` : ''}
@@ -163,7 +185,7 @@
           contenedor.appendChild(card);
         });
       } catch (err) {
-        console.error('Error cargando el muro:', err);
+        console.error('Error al cargar el mural:', err);
       }
     }
 
@@ -179,7 +201,7 @@
 
       const file = fileInput.files[0];
       btn.disabled = true;
-      btn.innerText = 'Procesando y Subiendo...';
+      btn.innerText = 'Subiendo...';
 
       const reader = new FileReader();
       reader.onloadend = async () => {
@@ -196,7 +218,7 @@
           if (res.ok) {
             fileInput.value = '';
             comentarioInput.value = '';
-            cargarMuro();
+            cargarMural();
           } else {
             alert('Error al publicar la foto.');
           }
@@ -204,7 +226,7 @@
           alert('Error de conexión con el servidor.');
         } finally {
           btn.disabled = false;
-          btn.innerText = 'Publicar en el Muro';
+          btn.innerText = 'Publicar en el Mural';
         }
       };
       reader.readAsDataURL(file);
