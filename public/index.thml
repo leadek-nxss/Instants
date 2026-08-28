@@ -1,1 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muro Anónimo Escolar</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f0f15;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .form-container {
+      max-width: 450px;
+      margin: 15px auto 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input[type="file"], input[type="text"] {
+      background: #1a1a24;
+      border: 1px solid #33334d;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    button {
+      background: #6c5ce7;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover { background: #5b4bc4; }
+
+    /* Estructura del Muro de Fotos Flotantes */
+    .muro {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 25px;
+      padding: 40px 20px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #181824;
+      border-radius: 12px;
+      padding: 12px;
+      width: 260px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.05);
+      /* Animación de Flotado */
+      animation: flotar 4s ease-in-out infinite alternate;
+    }
+
+    .card img {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #252538;
+    }
+
+    .card p {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ddd;
+      word-wrap: break-word;
+    }
+
+    .card span {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      color: #777;
+    }
+
+    @keyframes flotar {
+      0% { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(-12px) rotate(1.5deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Muro Anónimo</h1>
+    <p style="font-size: 13px; color: #aaa;">Sube tu imagen de forma anónima</p>
+
+    <div class="form-container">
+      <input type="file" id="fotoInput" accept="image/*">
+      <input type="text" id="comentarioInput" placeholder="Mensaje corto (opcional)..." maxlength="100">
+      <button id="btnPublicar" onclick="subirPublicacion()">Publicar en el Muro</button>
+    </div>
+  </header>
+
+  <main class="muro" id="muroContenedor"></main>
+
+  <script>
+    // Cargar fotos al iniciar
+    window.addEventListener('DOMContentLoaded', cargarMuro);
+
+    async function cargarMuro() {
+      try {
+        const res = await fetch('/api/fotos');
+        const fotos = await res.json();
+        const contenedor = document.getElementById('muroContenedor');
+        contenedor.innerHTML = '';
+
+        fotos.forEach((foto, i) => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          // Variación leve en tiempo de flotación para efecto orgánico
+          card.style.animationDelay = `${(i % 5) * 0.4}s`;
+
+          card.innerHTML = `
+            <img src="${foto.url}" loading="lazy" alt="Foto Anónima">
+            ${foto.comentario ? `<p>${foto.comentario}</p>` : ''}
+            <span>Anónimo • ${foto.fecha}</span>
+          `;
+          contenedor.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Error cargando el muro:', err);
+      }
+    }
+
+    async function subirPublicacion() {
+      const fileInput = document.getElementById('fotoInput');
+      const comentarioInput = document.getElementById('comentarioInput');
+      const btn = document.getElementById('btnPublicar');
+
+      if (!fileInput.files[0]) {
+        alert('Selecciona una foto primero.');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      btn.disabled = true;
+      btn.innerText = 'Procesando y Subiendo...';
+
+      // Convertir imagen a Base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const res = await fetch('/api/fotos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imagenBase64: reader.result,
+              comentario: comentarioInput.value
+            })
+          });
+
+          if (res.ok) {
+            fileInput.value = '';
+            comentarioInput.value = '';
+            cargarMuro();
+          } else {
+            alert('Error al publicar la foto.');
+          }
+        } catch (error) {
+          alert('Error de conexión con el servidor.');
+        } finally {
+          btn.disabled = false;
+          btn.innerText = 'Publicar en el Muro';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
 
