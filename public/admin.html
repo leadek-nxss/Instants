@@ -37,34 +37,41 @@
         div.className = 'item';
         div.innerHTML = `
           <a href="${f.url}" target="_blank">
-  <img src="${f.url}" style="cursor: pointer;">
-</a>
+            <img src="${f.url}">
+          </a>
           <p style="font-size: 12px; margin: 5px 0;">${f.comentario || 'Sin texto'}</p>
-          <button class="btn-borrar" onclick="borrarFoto('${encodeURIComponent(f.id)}')">Borrar Foto</button>
+          <button class="btn-borrar" onclick="borrarFoto('${f.id}')">Borrar Foto</button>
         `;
         grid.appendChild(div);
       });
     }
 
-    async function borrarFoto(encodedId) {
+    async function borrarFoto(id) {
       const pass = document.getElementById('adminPass').value;
       if (!pass) return alert('Ingresa tu clave de administrador.');
 
       if (!confirm('¿Seguro que deseas eliminar esta imagen permanentemente?')) return;
 
-      const res = await fetch(`/api/fotos/${encodedId}`, {
-        method: 'DELETE',
-        headers: { 'x-admin-password': pass }
-      });
+      try {
+        const res = await fetch(`/api/fotos?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: { 
+            'x-admin-password': pass,
+            'Content-Type': 'application/json'
+          }
+        });
 
-      if (res.ok) {
-        alert('Imagen eliminada.');
-        cargarGaleriaAdmin();
-      } else {
-        alert('Error: Clave incorrecta o fallo al eliminar.');
+        if (res.ok) {
+          alert('Imagen eliminada.');
+          cargarGaleriaAdmin();
+        } else {
+          const data = await res.json();
+          alert(`Error: ${data.error || 'Clave incorrecta o fallo al eliminar.'}`);
+        }
+      } catch (err) {
+        alert('Error de conexión con el servidor.');
       }
     }
   </script>
 </body>
 </html>
-
