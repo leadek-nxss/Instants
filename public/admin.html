@@ -27,23 +27,46 @@
 
   <script>
     async function cargarGaleriaAdmin() {
-      const res = await fetch('/api/fotos');
-      const fotos = await res.json();
+      const pass = document.getElementById('adminPass').value;
       const grid = document.getElementById('adminGrid');
-      grid.innerHTML = '';
 
-      fotos.forEach(f => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-          <a href="${f.url}" target="_blank">
-            <img src="${f.url}">
-          </a>
-          <p style="font-size: 12px; margin: 5px 0;">${f.comentario || 'Sin texto'}</p>
-          <button class="btn-borrar" onclick="borrarFoto('${f.id}')">Borrar Foto</button>
-        `;
-        grid.appendChild(div);
-      });
+      if (!pass) {
+        alert('Ingresa tu clave de administrador para cargar el panel.');
+        grid.innerHTML = '';
+        return;
+      }
+
+      try {
+        // Consultamos la ruta privada de administración
+        const res = await fetch('/api/admin/fotos', {
+          headers: { 'x-admin-password': pass }
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          alert(`Error: ${errData.error || 'Contraseña incorrecta.'}`);
+          grid.innerHTML = '';
+          return;
+        }
+
+        const fotos = await res.json();
+        grid.innerHTML = '';
+
+        fotos.forEach(f => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = `
+            <a href="${f.url}" target="_blank">
+              <img src="${f.url}">
+            </a>
+            <p style="font-size: 12px; margin: 5px 0;">${f.comentario || 'Sin texto'}</p>
+            <button class="btn-borrar" onclick="borrarFoto('${f.id}')">Borrar Foto</button>
+          `;
+          grid.appendChild(div);
+        });
+      } catch (err) {
+        alert('Error al conectar con el servidor.');
+      }
     }
 
     async function borrarFoto(id) {
