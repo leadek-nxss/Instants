@@ -13,10 +13,24 @@ cloudinary.config({
 
 let publicaciones = [];
 
+// Ruta pública para el muro escolar
 app.get('/api/fotos', (req, res) => {
   res.json(publicaciones);
 });
 
+// Ruta PRIVADA solo para el panel de administración
+app.get('/api/admin/fotos', (req, res) => {
+  const adminPassword = req.headers['x-admin-password'];
+  const passValida = process.env.ADMIN_PASSWORD || 'admin123';
+
+  if (adminPassword !== passValida) {
+    return res.status(401).json({ error: 'Contraseña de administrador incorrecta.' });
+  }
+
+  res.json(publicaciones);
+});
+
+// Subir foto
 app.post('/api/fotos', async (req, res) => {
   try {
     const { imagenBase64, comentario } = req.body;
@@ -48,7 +62,7 @@ app.post('/api/fotos', async (req, res) => {
   }
 });
 
-// Ruta corregida usando req.query.id
+// Eliminar foto (Protegido)
 app.delete('/api/fotos', async (req, res) => {
   const adminPassword = req.headers['x-admin-password'];
   const publicId = req.query.id;
