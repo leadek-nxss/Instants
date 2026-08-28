@@ -36,7 +36,9 @@
         const div = document.createElement('div');
         div.className = 'item';
         div.innerHTML = `
-          <img src="${f.url}">
+          <a href="${f.url}" target="_blank">
+  <img src="${f.url}" style="cursor: pointer;">
+</a>
           <p style="font-size: 12px; margin: 5px 0;">${f.comentario || 'Sin texto'}</p>
           <button class="btn-borrar" onclick="borrarFoto('${encodeURIComponent(f.id)}')">Borrar Foto</button>
         `;
